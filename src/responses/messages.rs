@@ -21,8 +21,8 @@ pub struct Message {
     pub subject: String,
     pub subreddit: Option<String>,
     pub was_comment: bool,
-    #[serde(deserialize_with="deserialize_timestamp")]
+    #[serde(deserialize_with = "deserialize_timestamp")]
     pub created: i64,
-    #[serde(deserialize_with="deserialize_timestamp")]
+    #[serde(deserialize_with = "deserialize_timestamp")]
     pub created_utc: i64,
 }

@@ -84,13 +84,13 @@ pub struct Comment {
     pub stickied: bool,
     /// A timestamp of the time when the post was created, in the logged-in user's **local**
     /// time.
-    #[serde(deserialize_with="deserialize_timestamp")]
+    #[serde(deserialize_with = "deserialize_timestamp")]
     pub created: i64,
     /// The text of the author's flair, if present. Can be an empty string if the flair is present
     /// but contains no text.
     pub author_flair_text: Option<String>,
     /// A timestamp of the time when the post was created, in **UTC**.
-    #[serde(deserialize_with="deserialize_timestamp")]
+    #[serde(deserialize_with = "deserialize_timestamp")]
     pub created_utc: i64,
     /// Indicates whether the user has used a special flag for themselves, e.g. [M] or [A].
     /// Possible values:

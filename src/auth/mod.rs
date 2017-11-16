@@ -136,10 +136,13 @@ pub struct PasswordAuthenticator {
 impl Authenticator for PasswordAuthenticator {
     fn login(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError> {
         let url = "https://www.reddit.com/api/v1/access_token";
-        let body = format!("grant_type=password&username={}&password={}",
-                           &self.username,
-                           &self.password);
-        let access_req = client.post(url)
+        let body = format!(
+            "grant_type=password&username={}&password={}",
+            &self.username,
+            &self.password
+        );
+        let access_req = client
+            .post(url)
             .header(Authorization(Basic {
                 username: self.client_id.to_owned(),
                 password: Some(self.client_secret.to_owned()),
@@ -163,7 +166,8 @@ impl Authenticator for PasswordAuthenticator {
     fn logout(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError> {
         let url = "https://www.reddit.com/api/v1/revoke_token";
         let body = format!("token={}", &self.access_token.to_owned().unwrap());
-        let req = client.post(url)
+        let req = client
+            .post(url)
             .header(Authorization(Basic {
                 username: self.client_id.to_owned(),
                 password: Some(self.client_secret.to_owned()),
@@ -199,11 +203,12 @@ impl PasswordAuthenticator {
     /// Creates a new `PasswordAuthenticator`. If you do not have a client ID and secret (or do
     /// not know what these are), you need to fetch one using the instructions in the module
     /// documentation.
-    pub fn new(client_id: &str,
-               client_secret: &str,
-               username: &str,
-               password: &str)
-               -> Arc<Mutex<Box<Authenticator + Send>>> {
+    pub fn new(
+        client_id: &str,
+        client_secret: &str,
+        username: &str,
+        password: &str,
+    ) -> Arc<Mutex<Box<Authenticator + Send>>> {
         Arc::new(Mutex::new(Box::new(PasswordAuthenticator {
             client_id: client_id.to_owned(),
             client_secret: client_secret.to_owned(),

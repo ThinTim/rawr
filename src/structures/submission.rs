@@ -69,9 +69,11 @@ impl<'a> Editable for Submission<'a> {
     }
 
     fn edit(&mut self, text: &str) -> Result<(), APIError> {
-        let body = format!("api_type=json&text={}&thing_id={}",
-                           self.client.url_escape(text.to_owned()),
-                           self.data.name);
+        let body = format!(
+            "api_type=json&text={}&thing_id={}",
+            self.client.url_escape(text.to_owned()),
+            self.data.name
+        );
         let res = self.client.post_success("/api/editusertext", &body, false);
         if let Ok(()) = res {
             // TODO: should we update selftext_html?
@@ -134,12 +136,20 @@ impl<'a> Approvable for Submission<'a> {
 
     fn ignore_reports(&self) -> Result<(), APIError> {
         let body = format!("id={}", self.data.name);
-        self.client.post_success("/api/ignore_reports", &body, false)
+        self.client.post_success(
+            "/api/ignore_reports",
+            &body,
+            false,
+        )
     }
 
     fn unignore_reports(&self) -> Result<(), APIError> {
         let body = format!("id={}", self.data.name);
-        self.client.post_success("/api/unignore_reports", &body, false)
+        self.client.post_success(
+            "/api/unignore_reports",
+            &body,
+            false,
+        )
     }
 }
 
@@ -149,19 +159,18 @@ impl<'a> Commentable<'a> for Submission<'a> {
     }
 
     fn reply(&self, text: &str) -> Result<Comment, APIError> {
-        let body = format!("api_type=json&text={}&thing_id={}",
-                           self.client.url_escape(text.to_owned()),
-                           self.name());
+        let body = format!(
+            "api_type=json&text={}&thing_id={}",
+            self.client.url_escape(text.to_owned()),
+            self.name()
+        );
         //
         self.client
             .post_json::<NewComment>("/api/comment", &body, false)
             .and_then(|res| {
-                let data = res.json
-                    .data
-                    .things
-                    .into_iter()
-                    .next()
-                    .ok_or_else(|| APIError::MissingField("things[0]"));
+                let data = res.json.data.things.into_iter().next().ok_or_else(|| {
+                    APIError::MissingField("things[0]")
+                });
                 Ok(Comment::new(self.client, try!(data).data))
             })
     }
@@ -172,10 +181,12 @@ impl<'a> Commentable<'a> for Submission<'a> {
         self.client
             .get_json::<listing::CommentResponse>(&url, false)
             .and_then(|res| {
-                Ok(CommentList::new(self.client,
-                                    self.data.name.to_owned(),
-                                    self.data.name.to_owned(),
-                                    res.1.data.children))
+                Ok(CommentList::new(
+                    self.client,
+                    self.data.name.to_owned(),
+                    self.data.name.to_owned(),
+                    res.1.data.children,
+                ))
             })
     }
 }
@@ -266,7 +277,11 @@ impl<'a> Stickable for Submission<'a> {
 
     fn stick(&mut self) -> Result<(), APIError> {
         let body = format!("api_type=json&id={}&state=true", self.data.name);
-        let res = self.client.post_success("/api/set_subreddit_sticky", &body, false);
+        let res = self.client.post_success(
+            "/api/set_subreddit_sticky",
+            &body,
+            false,
+        );
 
         if let Ok(_) = res {
             self.data.stickied = true;
@@ -277,7 +292,11 @@ impl<'a> Stickable for Submission<'a> {
 
     fn unstick(&mut self) -> Result<(), APIError> {
         let body = format!("api_type=json&id={}&state=false", self.data.name);
-        let res = self.client.post_success("/api/set_subreddit_sticky", &body, false);
+        let res = self.client.post_success(
+            "/api/set_subreddit_sticky",
+            &body,
+            false,
+        );
 
         if let Ok(_) = res {
             self.data.stickied = false;
@@ -317,9 +336,11 @@ impl<'a> Lockable for Submission<'a> {
 
 impl<'a> Reportable for Submission<'a> {
     fn report(&self, reason: &str) -> Result<(), APIError> {
-        let body = format!("api_type=json&thing_id={}&reason={}",
-                           self.data.name,
-                           self.client.url_escape(reason.to_owned()));
+        let body = format!(
+            "api_type=json&thing_id={}&reason={}",
+            self.data.name,
+            self.client.url_escape(reason.to_owned())
+        );
         self.client.post_success("/api/report", &body, false)
     }
 
@@ -370,9 +391,11 @@ impl<'a> Flairable for Submission<'a> {
     }
 
     fn flair(&self, template: &str) -> Result<(), APIError> {
-        let body = format!("api_type=json&link={}&flair_template_id={}",
-                           self.data.name,
-                           template);
+        let body = format!(
+            "api_type=json&link={}&flair_template_id={}",
+            self.data.name,
+            template
+        );
         let url = format!("/r/{}/api/selectflair", self.data.subreddit);
         self.client.post_success(&url, &body, false)
     }
@@ -473,15 +496,19 @@ impl<'a> LazySubmission<'a> {
 
     /// Fetches a `CommentList` with replies to this submission.
     pub fn replies(self) -> Result<CommentList<'a>, APIError> {
-        let url = format!("/comments/{}?raw_json=1",
-                          self.id.split('_').nth(1).unwrap());
+        let url = format!(
+            "/comments/{}?raw_json=1",
+            self.id.split('_').nth(1).unwrap()
+        );
         self.client
             .get_json::<listing::CommentResponse>(&url, false)
             .and_then(|res| {
-                Ok(CommentList::new(self.client,
-                                    self.id.to_owned(),
-                                    self.id.to_owned(),
-                                    res.1.data.children))
+                Ok(CommentList::new(
+                    self.client,
+                    self.id.to_owned(),
+                    self.id.to_owned(),
+                    res.1.data.children,
+                ))
             })
     }
 }

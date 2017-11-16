@@ -233,7 +233,9 @@ mod tests {
     fn hot_length() {
         let client = RedditClient::new("rawr", AnonymousAuthenticator::new());
         let r_all = client.subreddit("all");
-        let hot = r_all.hot(ListingOptions::default()).expect("Request failed!");
+        let hot = r_all.hot(ListingOptions::default()).expect(
+            "Request failed!",
+        );
         let hot_list = hot.take(26).collect::<Vec<Submission>>();
         assert_eq!(hot_list.len() as usize, 26);
     }

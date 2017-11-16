@@ -30,9 +30,9 @@ pub struct SubredditAboutData {
     pub display_name: String,
     pub description: String,
     pub description_html: String,
-    #[serde(deserialize_with="deserialize_timestamp")]
+    #[serde(deserialize_with = "deserialize_timestamp")]
     pub created: i64,
-    #[serde(deserialize_with="deserialize_timestamp")]
+    #[serde(deserialize_with = "deserialize_timestamp")]
     pub created_utc: i64,
     pub quarantine: bool,
     pub submission_type: String,
@@ -165,7 +165,7 @@ pub struct Submission {
     pub name: String,
     /// A timestamp of the time when the post was created, in the logged-in user's **local**
     /// time.
-    #[serde(deserialize_with="deserialize_timestamp")]
+    #[serde(deserialize_with = "deserialize_timestamp")]
     pub created: i64,
     /// The linked URL, if this is a link post.
     pub url: Option<String>,
@@ -177,7 +177,7 @@ pub struct Submission {
     /// The title of the post.
     pub title: String,
     /// A timestamp of the time when the post was created, in **UTC**.
-    #[serde(deserialize_with="deserialize_timestamp")]
+    #[serde(deserialize_with = "deserialize_timestamp")]
     pub created_utc: i64,
     /// Indicates whether the user has used a special flag for themselves, e.g. [M] or [A].
     /// Possible values:

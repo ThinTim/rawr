@@ -117,7 +117,10 @@ impl<'a> Subreddit<'a> {
     /// let sub = client.subreddit("thanksobama");
     /// let mut top = sub.top(ListingOptions::default(), TimeFilter::AllTime)
     ///     .expect("Request failed");
-    /// assert_eq!(top.next().unwrap().title(), "Thanks Obama, for helping to protect the rights of over 9 million Americans.");
+    /// assert_eq!(
+    ///    top.next().unwrap().title(),
+    ///    "Thanks Obama, for helping to protect the rights of over 9 million Americans."
+    /// );
     /// ```
     pub fn top(&self, opts: ListingOptions, time: TimeFilter) -> Result<Listing, APIError> {
         let path = format!("top?{}&", time);
@@ -127,10 +130,11 @@ impl<'a> Subreddit<'a> {
     /// Gets a listing of the controversial feed for this subreddit. Also requires a time filter (
     /// `rawr::options::TimeFilter`) which is equivalent to the "links from: all time" dropdown
     /// on the website.
-    pub fn controversial(&self,
-                         opts: ListingOptions,
-                         time: TimeFilter)
-                         -> Result<Listing, APIError> {
+    pub fn controversial(
+        &self,
+        opts: ListingOptions,
+        time: TimeFilter,
+    ) -> Result<Listing, APIError> {
         let path = format!("controversial?{}&", time);
         self.get_feed(&path, opts)
     }
@@ -154,12 +158,14 @@ impl<'a> Subreddit<'a> {
     /// sub.submit_link(post).expect("Posting failed!");
     /// ```
     pub fn submit_link(&self, post: LinkPost) -> Result<(), APIError> {
-        let body = format!("api_type=json&extension=json&kind=link&resubmit={}&sendreplies=true&\
+        let body = format!(
+            "api_type=json&extension=json&kind=link&resubmit={}&sendreplies=true&\
                             sr={}&title={}&url={}",
-                           post.resubmit,
-                           self.name,
-                           self.client.url_escape(post.title.to_owned()),
-                           self.client.url_escape(post.link.to_owned()));
+            post.resubmit,
+            self.name,
+            self.client.url_escape(post.title.to_owned()),
+            self.client.url_escape(post.link.to_owned())
+        );
         self.client.post_success("/api/submit", &body, false)
     }
 
@@ -176,11 +182,13 @@ impl<'a> Subreddit<'a> {
     /// sub.submit_text(post).expect("Posting failed!");
     /// ```
     pub fn submit_text(&self, post: SelfPost) -> Result<(), APIError> {
-        let body = format!("api_type=json&extension=json&kind=self&sendreplies=true&sr={}\
+        let body = format!(
+            "api_type=json&extension=json&kind=self&sendreplies=true&sr={}\
                             &title={}&text={}",
-                           self.name,
-                           self.client.url_escape(post.title),
-                           self.client.url_escape(post.text));
+            self.name,
+            self.client.url_escape(post.title),
+            self.client.url_escape(post.text)
+        );
         self.client.post_success("/api/submit", &body, false)
     }
 

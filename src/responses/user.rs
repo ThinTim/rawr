@@ -10,9 +10,9 @@ pub struct UserAboutData {
     pub is_friend: bool,
     pub hide_from_robots: bool,
     pub id: String,
-    #[serde(deserialize_with="deserialize_timestamp")]
+    #[serde(deserialize_with = "deserialize_timestamp")]
     pub created: i64,
-    #[serde(deserialize_with="deserialize_timestamp")]
+    #[serde(deserialize_with = "deserialize_timestamp")]
     pub created_utc: i64,
     pub link_karma: i64,
     pub comment_karma: i64,

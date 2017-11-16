@@ -44,28 +44,31 @@ impl<'a> Message<'a> {
 
 impl<'a> Commentable<'a> for Message<'a> {
     fn reply_count(&self) -> u64 {
-        panic!("The Reddit API does not appear to return the reply count to messages, so this \
-                function is unavailable.");
+        panic!(
+            "The Reddit API does not appear to return the reply count to messages, so this \
+                function is unavailable."
+        );
     }
 
     fn replies(self) -> Result<CommentList<'a>, APIError> {
-        panic!("The Reddit API does not seem to return replies to messages as expected, so this \
-                function is unavailable.");
+        panic!(
+            "The Reddit API does not seem to return replies to messages as expected, so this \
+                function is unavailable."
+        );
     }
 
     fn reply(&self, text: &str) -> Result<Comment, APIError> {
-        let body = format!("api_type=json&text={}&thing_id={}",
-                           self.client.url_escape(text.to_owned()),
-                           self.name());
+        let body = format!(
+            "api_type=json&text={}&thing_id={}",
+            self.client.url_escape(text.to_owned()),
+            self.name()
+        );
         self.client
             .post_json::<NewComment>("/api/comment", &body, false)
             .and_then(|res| {
-                let data = res.json
-                    .data
-                    .things
-                    .into_iter()
-                    .next()
-                    .ok_or_else(|| APIError::MissingField("things[0]"));
+                let data = res.json.data.things.into_iter().next().ok_or_else(|| {
+                    APIError::MissingField("things[0]")
+                });
                 Ok(Comment::new(self.client, try!(data).data))
             })
     }
@@ -83,7 +86,9 @@ impl<'a> Created for Message<'a> {
 
 impl<'a> Content for Message<'a> {
     fn author(&self) -> User {
-        let author = self.data.author.to_owned().unwrap_or(String::from("reddit"));
+        let author = self.data.author.to_owned().unwrap_or(
+            String::from("reddit"),
+        );
         User::new(self.client, &author)
     }
 
@@ -96,7 +101,9 @@ impl<'a> Content for Message<'a> {
     }
 
     fn subreddit(&self) -> Subreddit {
-        let subreddit = self.data.subreddit.to_owned().unwrap_or(String::from("all"));
+        let subreddit = self.data.subreddit.to_owned().unwrap_or(
+            String::from("all"),
+        );
         Subreddit::create_new(self.client, &subreddit)
     }
 
@@ -123,12 +130,20 @@ impl<'a> Approvable for Message<'a> {
 
     fn ignore_reports(&self) -> Result<(), APIError> {
         let body = format!("id={}", self.data.name);
-        self.client.post_success("/api/ignore_reports", &body, false)
+        self.client.post_success(
+            "/api/ignore_reports",
+            &body,
+            false,
+        )
     }
 
     fn unignore_reports(&self) -> Result<(), APIError> {
         let body = format!("id={}", self.data.name);
-        self.client.post_success("/api/unignore_reports", &body, false)
+        self.client.post_success(
+            "/api/unignore_reports",
+            &body,
+            false,
+        )
     }
 }
 
@@ -142,9 +157,11 @@ impl<'a> Editable for Message<'a> {
     }
 
     fn edit(&mut self, text: &str) -> Result<(), APIError> {
-        let body = format!("api_type=json&text={}&thing_id={}",
-                           self.client.url_escape(text.to_owned()),
-                           self.data.name);
+        let body = format!(
+            "api_type=json&text={}&thing_id={}",
+            self.client.url_escape(text.to_owned()),
+            self.data.name
+        );
         let res = self.client.post_success("/api/editusertext", &body, false);
         if let Ok(()) = res {
             // TODO: should we update body_html?
@@ -181,10 +198,12 @@ impl<'a> MessageInterface<'a> {
     /// client.messages().compose("Aurora0001", "Test", "Hi!");
     // ```
     pub fn compose(&self, recipient: &str, subject: &str, body: &str) -> Result<(), APIError> {
-        let body = format!("api_type=json&subject={}&text={}&to={}",
-                           subject,
-                           body,
-                           recipient);
+        let body = format!(
+            "api_type=json&subject={}&text={}&to={}",
+            subject,
+            body,
+            recipient
+        );
         self.client.post_success("/api/compose", &body, false)
     }
 
@@ -235,10 +254,11 @@ pub struct MessageListing<'a> {
 impl<'a> MessageListing<'a> {
     /// Internal method. Use `RedditClient.messages()` and request one of the message listings
     /// (e.g. `inbox(LISTING_OPTIONS)`).
-    pub fn new(client: &RedditClient,
-               query_stem: String,
-               data: listing::ListingData<MessageData>)
-               -> MessageListing {
+    pub fn new(
+        client: &RedditClient,
+        query_stem: String,
+        data: listing::ListingData<MessageData>,
+    ) -> MessageListing {
         MessageListing {
             client: client,
             query_stem: query_stem,
@@ -269,7 +289,11 @@ impl<'a> MessageListing<'a> {
                 self.client
                     .get_json::<_MessageListing>(&url, false)
                     .and_then(|res| {
-                        Ok(MessageListing::new(self.client, self.query_stem.to_owned(), res.data))
+                        Ok(MessageListing::new(
+                            self.client,
+                            self.query_stem.to_owned(),
+                            res.data,
+                        ))
                     })
             }
             None => Err(APIError::ExhaustedListing),
@@ -339,13 +363,15 @@ impl<'a> Iterator for MessageStream<'a> {
             thread::sleep(Duration::new(5, 0));
             let req: Result<_MessageListing, APIError> = self.client.get_json(&self.url, false);
             let current_iter = if let Ok(res) = req {
-                Some(res.data
-                    .children
-                    .into_iter()
-                    .map(|i| Message::new(self.client, i.data))
-                    .rev()
-                    .collect::<Vec<Message<'a>>>()
-                    .into_iter())
+                Some(
+                    res.data
+                        .children
+                        .into_iter()
+                        .map(|i| Message::new(self.client, i.data))
+                        .rev()
+                        .collect::<Vec<Message<'a>>>()
+                        .into_iter(),
+                )
             } else {
                 None
             };

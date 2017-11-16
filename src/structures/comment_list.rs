@@ -45,11 +45,12 @@ impl<'a> CommentList<'a> {
     /// Creates a `CommentList` by storing all comments in the `CommentList.comments` list
     /// and all 'more' items in the `CommentList.more` list. Do not use this method - instead, use
     /// `Submission.replies()` or `Comment.replies()`.
-    pub fn new(client: &'a RedditClient,
-               link_id: String,
-               parent: String,
-               comment_list: Vec<BasicThing<Value>>)
-               -> CommentList<'a> {
+    pub fn new(
+        client: &'a RedditClient,
+        link_id: String,
+        parent: String,
+        comment_list: Vec<BasicThing<Value>>,
+    ) -> CommentList<'a> {
         let mut new_items = vec![];
         let mut new_mores = vec![];
         let mut hashes = HashMap::new();
@@ -92,14 +93,19 @@ impl<'a> CommentList<'a> {
     /// Adds a (pre-existing) comment to the reply list. This is an internal method, and does not
     /// actually post a comment, just adds one that has already been fetched.
     pub fn add_reply(&mut self, item: Comment<'a>) {
-        self.comment_hashes.insert(item.name().to_owned(), self.comments.len());
+        self.comment_hashes.insert(
+            item.name().to_owned(),
+            self.comments.len(),
+        );
         self.comments.push(item);
     }
 
     fn fetch_more(&mut self, more_item: More) -> CommentList<'a> {
-        let params = format!("api_type=json&raw_json=1&link_id={}&children={}",
-                             &self.link_id,
-                             &more_item.children.join(","));
+        let params = format!(
+            "api_type=json&raw_json=1&link_id={}&children={}",
+            &self.link_id,
+            &more_item.children.join(",")
+        );
         let url = "/api/morechildren";
         self.client
             .ensure_authenticated(|| {
@@ -118,15 +124,19 @@ impl<'a> CommentList<'a> {
                         let mut things = data.as_object_mut().unwrap();
                         let things = things.remove("things").unwrap();
                         let things: Vec<BasicThing<Value>> = from_value(things).unwrap();
-                        Ok(CommentList::new(self.client,
-                                            self.link_id.to_owned(),
-                                            self.parent.to_owned(),
-                                            things))
+                        Ok(CommentList::new(
+                            self.client,
+                            self.link_id.to_owned(),
+                            self.parent.to_owned(),
+                            things,
+                        ))
                     } else {
-                        Ok(CommentList::new(self.client,
-                                            self.link_id.to_owned(),
-                                            self.parent.to_owned(),
-                                            vec![]))
+                        Ok(CommentList::new(
+                            self.client,
+                            self.link_id.to_owned(),
+                            self.parent.to_owned(),
+                            vec![],
+                        ))
                     }
                 } else {
                     Err(APIError::HTTPError(res.status))
@@ -142,9 +152,11 @@ impl<'a> CommentList<'a> {
         }
     }
 
-    fn merge_comment(&mut self,
-                     mut item: Comment<'a>,
-                     mut orphanage: &mut HashMap<String, Vec<Comment<'a>>>) {
+    fn merge_comment(
+        &mut self,
+        mut item: Comment<'a>,
+        mut orphanage: &mut HashMap<String, Vec<Comment<'a>>>,
+    ) {
         {
             if item.parent() == self.parent {
                 self.add_reply(item);
@@ -259,11 +271,12 @@ impl<'a> Iterator for CommentStream<'a> {
             let url = format!("/comments/{}?sort=new&raw_json=1", self.id);
             let req: Result<listing::CommentResponse, APIError> = self.client.get_json(&url, false);
             if let Ok(req) = req {
-                let current_iter = CommentList::new(self.client,
-                                                    self.link_name.to_owned(),
-                                                    self.link_name.to_owned(),
-                                                    req.1.data.children)
-                    .take(5)
+                let current_iter = CommentList::new(
+                    self.client,
+                    self.link_name.to_owned(),
+                    self.link_name.to_owned(),
+                    req.1.data.children,
+                ).take(5)
                     .collect::<Vec<Comment>>()
                     .into_iter()
                     .rev()

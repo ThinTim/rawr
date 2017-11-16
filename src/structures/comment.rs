@@ -60,9 +60,11 @@ impl<'a> Editable for Comment<'a> {
     }
 
     fn edit(&mut self, text: &str) -> Result<(), APIError> {
-        let body = format!("api_type=json&text={}&thing_id={}",
-                           self.client.url_escape(text.to_owned()),
-                           self.data.name);
+        let body = format!(
+            "api_type=json&text={}&thing_id={}",
+            self.client.url_escape(text.to_owned()),
+            self.data.name
+        );
         let res = self.client.post_success("/api/editusertext", &body, false);
         if let Ok(()) = res {
             // TODO: should we update body_html?
@@ -120,34 +122,44 @@ impl<'a> Approvable for Comment<'a> {
 
     fn ignore_reports(&self) -> Result<(), APIError> {
         let body = format!("id={}", self.data.name);
-        self.client.post_success("/api/ignore_reports", &body, false)
+        self.client.post_success(
+            "/api/ignore_reports",
+            &body,
+            false,
+        )
     }
 
     fn unignore_reports(&self) -> Result<(), APIError> {
         let body = format!("id={}", self.data.name);
-        self.client.post_success("/api/unignore_reports", &body, false)
+        self.client.post_success(
+            "/api/unignore_reports",
+            &body,
+            false,
+        )
     }
 }
 
 impl<'a> Commentable<'a> for Comment<'a> {
     fn reply_count(&self) -> u64 {
-        panic!("There is no effective way of getting the number of comment replies. You may have \
-                to manually count with `replies().len()`, which may take some time.");
+        panic!(
+            "There is no effective way of getting the number of comment replies. You may have \
+                to manually count with `replies().len()`, which may take some time."
+        );
     }
 
     fn reply(&self, text: &str) -> Result<Comment, APIError> {
-        let body = format!("api_type=json&text={}&thing_id={}",
-                           self.client.url_escape(text.to_owned()),
-                           self.name());
+        let body = format!(
+            "api_type=json&text={}&thing_id={}",
+            self.client.url_escape(text.to_owned()),
+            self.name()
+        );
         self.client
             .post_json::<NewComment>("/api/comment", &body, false)
             .and_then(|res| {
-                let data: Result<_, APIError> = res.json
-                    .data
-                    .things
-                    .into_iter()
-                    .next()
-                    .ok_or_else(|| APIError::MissingField("things[0]"));
+                let data: Result<_, APIError> =
+                    res.json.data.things.into_iter().next().ok_or_else(|| {
+                        APIError::MissingField("things[0]")
+                    });
                 Ok(Comment::new(self.client, data?.data))
             })
     }
@@ -164,10 +176,12 @@ impl<'a> Comment<'a> {
         let comments = if data.replies.is_object() {
             // TODO: avoid cloning here
             let listing = from_value::<CommentListing>(data.replies.clone()).unwrap();
-            CommentList::new(client,
-                             data.link_id.to_owned(),
-                             data.name.to_owned(),
-                             listing.data.children)
+            CommentList::new(
+                client,
+                data.link_id.to_owned(),
+                data.name.to_owned(),
+                listing.data.children,
+            )
         } else {
             CommentList::empty(client)
         };
@@ -198,9 +212,11 @@ impl<'a> Comment<'a> {
 
 impl<'a> Reportable for Comment<'a> {
     fn report(&self, reason: &str) -> Result<(), APIError> {
-        let body = format!("api_type=json&thing_id={}&reason={}",
-                           self.data.name,
-                           self.client.url_escape(reason.to_owned()));
+        let body = format!(
+            "api_type=json&thing_id={}&reason={}",
+            self.data.name,
+            self.client.url_escape(reason.to_owned())
+        );
         self.client.post_success("/api/report", &body, false)
     }
 
