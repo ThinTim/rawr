@@ -62,15 +62,15 @@ use hyper::client::Client;
 use errors::APIError;
 
 /// Trait for any method of authenticating with the Reddit API.
-pub trait Authenticator {
+pub trait Authenticator<C> {
     /// Logs in and fetches relevant tokens.
-    fn login(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError>;
+    fn login(&mut self, client: &Client<C>, user_agent: &str) -> Result<(), APIError>;
     /// Called if a token expiration error occurs.
-    fn refresh_token(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError> {
+    fn refresh_token(&mut self, client: &Client<C>, user_agent: &str) -> Result<(), APIError> {
         self.login(client, user_agent)
     }
     /// Logs out and invalidates tokens if applicable.
-    fn logout(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError>;
+    fn logout(&mut self, client: &Client<C>, user_agent: &str) -> Result<(), APIError>;
     /// A list of OAuth scopes that this `Authenticator` can access. Currently, the result of this
     /// is not used, but the correct scopes should be returned. If all scopes can be accessed,
     /// this is signified by a vec!["*"]. If it is read-only, the result is vec!["read"].
@@ -84,15 +84,15 @@ pub trait Authenticator {
 /// An anonymous login authenticator.
 pub struct AnonymousAuthenticator;
 
-impl Authenticator for AnonymousAuthenticator {
+impl<C> Authenticator<C> for AnonymousAuthenticator {
     #[allow(unused_variables)]
-    fn login(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError> {
+    fn login(&mut self, client: &Client<C>, user_agent: &str) -> Result<(), APIError> {
         // Don't log in, because we're anonymous!
         Ok(())
     }
 
     #[allow(unused_variables)]
-    fn logout(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError> {
+    fn logout(&mut self, client: &Client<C>, user_agent: &str) -> Result<(), APIError> {
         // Can't log out if we're not logged in.
         Ok(())
     }
@@ -110,7 +110,7 @@ impl Authenticator for AnonymousAuthenticator {
     }
 }
 
-impl AnonymousAuthenticator {
+impl<C> AnonymousAuthenticator {
     /// Creates a new `AnonymousAuthenticator`. See the module-level documentation for the purpose
     /// of `AnonymousAuthenticator`.
     /// # Examples
@@ -118,7 +118,7 @@ impl AnonymousAuthenticator {
     /// use rawr::auth::AnonymousAuthenticator;
     /// AnonymousAuthenticator::new();
     /// ```
-    pub fn new() -> Arc<Mutex<Box<Authenticator + Send>>> {
+    pub fn new() -> Arc<Mutex<Box<Authenticator<C> + Send>>> {
         Arc::new(Mutex::new(Box::new(AnonymousAuthenticator {})))
     }
 }
@@ -133,8 +133,8 @@ pub struct PasswordAuthenticator {
     password: String,
 }
 
-impl Authenticator for PasswordAuthenticator {
-    fn login(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError> {
+impl<C> Authenticator<C> for PasswordAuthenticator {
+    fn login(&mut self, client: &Client<C>, user_agent: &str) -> Result<(), APIError> {
         let url = "https://www.reddit.com/api/v1/access_token";
         let body = format!(
             "grant_type=password&username={}&password={}",
@@ -163,7 +163,7 @@ impl Authenticator for PasswordAuthenticator {
         }
     }
 
-    fn logout(&mut self, client: &Client, user_agent: &str) -> Result<(), APIError> {
+    fn logout(&mut self, client: &Client<C>, user_agent: &str) -> Result<(), APIError> {
         let url = "https://www.reddit.com/api/v1/revoke_token";
         let body = format!("token={}", &self.access_token.to_owned().unwrap());
         let req = client
@@ -199,7 +199,7 @@ impl Authenticator for PasswordAuthenticator {
     }
 }
 
-impl PasswordAuthenticator {
+impl<C> PasswordAuthenticator {
     /// Creates a new `PasswordAuthenticator`. If you do not have a client ID and secret (or do
     /// not know what these are), you need to fetch one using the instructions in the module
     /// documentation.
@@ -208,7 +208,7 @@ impl PasswordAuthenticator {
         client_secret: &str,
         username: &str,
         password: &str,
-    ) -> Arc<Mutex<Box<Authenticator + Send>>> {
+    ) -> Arc<Mutex<Box<Authenticator<C> + Send>>> {
         Arc::new(Mutex::new(Box::new(PasswordAuthenticator {
             client_id: client_id.to_owned(),
             client_secret: client_secret.to_owned(),
