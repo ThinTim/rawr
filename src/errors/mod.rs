@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fmt::{Display, Result as FmtResult, Formatter};
-use hyper::status::StatusCode;
+use hyper::StatusCode;
 use hyper;
 use serde_json;
 

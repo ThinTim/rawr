@@ -147,7 +147,7 @@ impl Authenticator for PasswordAuthenticator {
                 username: self.client_id.to_owned(),
                 password: Some(self.client_secret.to_owned()),
             }))
-            .header(UserAgent(user_agent.to_owned()))
+            .header(UserAgent::new(user_agent.to_owned()))
             .body(&body);
 
         let mut result = access_req.send().unwrap();
@@ -172,7 +172,7 @@ impl Authenticator for PasswordAuthenticator {
                 username: self.client_id.to_owned(),
                 password: Some(self.client_secret.to_owned()),
             }))
-            .header(UserAgent(user_agent.to_owned()))
+            .header(UserAgent::new(user_agent.to_owned()))
             .body(&body);
         let res = req.send().unwrap();
         if !res.status.is_success() {

@@ -33,7 +33,7 @@ use std::io::Read;
 use hyper::client::{Client, RequestBuilder};
 use hyper::header::UserAgent;
 use hyper::net::HttpsConnector;
-use hyper::status::StatusCode::Unauthorized;
+use hyper::StatusCode::Unauthorized;
 use hyper_native_tls::NativeTlsClient;
 
 use serde_json::from_str;
@@ -169,7 +169,7 @@ impl RedditClient {
         let url = self.build_url(dest, oauth_required, &mut authenticator);
         let req = self.client.get(&url);
         let mut headers = authenticator.headers();
-        headers.set(UserAgent(self.user_agent.to_owned()));
+        headers.set(UserAgent::new(self.user_agent.to_owned()));
         req.headers(headers)
     }
 
@@ -202,7 +202,7 @@ impl RedditClient {
         let url = self.build_url(dest, oauth_required, &mut authenticator);
         let req = self.client.post(&url);
         let mut headers = authenticator.headers();
-        headers.set(UserAgent(self.user_agent.to_owned()));
+        headers.set(UserAgent::new(self.user_agent.to_owned()));
         req.headers(headers)
     }
 
